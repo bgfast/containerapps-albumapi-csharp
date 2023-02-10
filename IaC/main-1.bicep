@@ -1,7 +1,8 @@
-// Deploy Azure infrastructure for FuncApp + monitoring
-
 // Region for all resources
-param location string = resourceGroup().location
+param location string
+param resourceGroupName string = 'rg-myname'
+
+//param location string = resourceGroup().location
 param createdBy string = 'yourname'
 param costCenter string = '12345678'
 param nickName string = 'yourname'
@@ -31,7 +32,17 @@ var defaultTags = {
   NickName: nickName
 }
 
- // Create Azure Container Registry
+module resourcegroupmod 'main-1-ResourceGroup.bicep' = {
+  name: resourceGroupName
+  scope: subscription()
+  params: {
+    defaultTags: defaultTags
+    location: location
+    resourceGroupName: resourceGroupName
+  }
+}
+
+// Create Azure Container Registry
  module containerregistrymod './main-1-ContainerRegistry.bicep' = {
   name: containerregistryName
   params: {
