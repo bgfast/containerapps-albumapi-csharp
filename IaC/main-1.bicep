@@ -49,6 +49,9 @@ module resourcegroupmod 'main-1-ResourceGroup.bicep' = {
     containerregistryName: containerregistryName
     location: location
   }
+  dependsOn:  [
+    resourcegroupmod
+  ]
  }
 
  // Create Azure Container App
@@ -66,7 +69,8 @@ module resourcegroupmod 'main-1-ResourceGroup.bicep' = {
      defaultTags: defaultTags
    }
    dependsOn:  [
-     containerregistrymod
+    resourcegroupmod
+    containerregistrymod
    ]
   }
 
