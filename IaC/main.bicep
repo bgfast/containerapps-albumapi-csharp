@@ -13,6 +13,16 @@ param baseName string = 'rpagels'
 @description('Three letter environment abreviation to denote environment that will appear in all resource names') 
 param environmentName string = 'dev'
 
+param resourceGroupName string = toLower('rg-${baseName}-${environmentName}-${location}')
+
+// Resource names may contain alpha numeric characters only and must be between 5 and 50 characters.
+param storageAccountName string = 'sta${uniqueString(resourceGroupName)}'
+param containerregistryName string = 'cr${uniqueString(resourceGroupName)}'
+param containerName string = 'containers-${uniqueString(resourceGroupName)}'
+param containerAppName string = 'ca-${uniqueString(resourceGroupName)}'
+param containerAppEnvName string = 'cae-${uniqueString(resourceGroupName)}'
+param containerAppLogAnalyticsName string = 'calog-${uniqueString(resourceGroupName)}'
+
 // Deployment at subscription scope.
 targetScope = 'subscription'
 
@@ -22,16 +32,20 @@ param tag_costCenter string = '12345678'
 param tag_nickName string = 'yourname'
 
 // Create unique RG name
-param guidValue string = newGuid()
-var resourceGroupName = toLower('rg-${baseName}-${environmentName}-${location}')
+//param guidValue string = newGuid()
+//param resourceGroupName string = toLower('rg-${baseName}-${environmentName}-${location}')
 
-// Resource names may contain alpha numeric characters only and must be between 5 and 50 characters.
-var storageAccountName = 'sta${uniqueString(resourceGroupName)}'
-var containerregistryName = 'cr${uniqueString(resourceGroupName)}'
-var containerName = 'containers-${uniqueString(resourceGroupName)}'
-var containerAppName = 'ca-${uniqueString(resourceGroupName)}'
-var containerAppEnvName = 'cae-${uniqueString(resourceGroupName)}'
-var containerAppLogAnalyticsName = 'calog-${uniqueString(resourceGroupName)}'
+//var resourceGroupName = toLower('rg-${baseName}-${environmentName}-${location}')
+
+// // Resource names may contain alpha numeric characters only and must be between 5 and 50 characters.
+// param storageAccountName string = 'sta${uniqueString(resourceGroupName)}'
+
+// //var storageAccountName = 'sta${uniqueString(resourceGroupName)}'
+// var containerregistryName = 'cr${uniqueString(resourceGroupName)}'
+// var containerName = 'containers-${uniqueString(resourceGroupName)}'
+// var containerAppName = 'ca-${uniqueString(resourceGroupName)}'
+// var containerAppEnvName = 'cae-${uniqueString(resourceGroupName)}'
+// var containerAppLogAnalyticsName = 'calog-${uniqueString(resourceGroupName)}'
 
 // Default image needed to create Container App
 // https://mcr.microsoft.com/en-us/product/mcr/hello-world/about
