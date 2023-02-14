@@ -1,108 +1,157 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
     "_generator": {
       "name": "bicep",
       "version": "0.14.46.61228",
-      "templateHash": "15482815170652816484"
+      "templateHash": "9261947526543359121"
     }
   },
   "parameters": {
     "location": {
-      "type": "string"
-    },
-    "resourceGroupName": {
       "type": "string",
-      "defaultValue": "rg-myname"
+      "metadata": {
+        "description": "Location for all resources."
+      }
     },
-    "createdBy": {
+    "baseName": {
+      "type": "string",
+      "defaultValue": "rpagels",
+      "metadata": {
+        "description": "Base name that will appear for all resources."
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "dev",
+      "metadata": {
+        "description": "Three letter environment abreviation to denote environment that will appear in all resource names"
+      }
+    },
+    "tag_appname": {
+      "type": "string",
+      "defaultValue": "appname"
+    },
+    "tag_createdBy": {
       "type": "string",
       "defaultValue": "yourname"
     },
-    "costCenter": {
+    "tag_costCenter": {
       "type": "string",
       "defaultValue": "12345678"
     },
-    "nickName": {
+    "tag_nickName": {
       "type": "string",
       "defaultValue": "yourname"
     }
   },
   "variables": {
-    "containerregistryName": "[format('cr{0}', uniqueString(resourceGroup().id))]",
-    "containerName": "[format('containers-{0}', uniqueString(resourceGroup().id))]",
-    "containerAppName": "[format('ca-{0}', uniqueString(resourceGroup().id))]",
-    "containerAppEnvName": "[format('cae-{0}', uniqueString(resourceGroup().id))]",
-    "containerAppLogAnalyticsName": "[format('calog-{0}', uniqueString(resourceGroup().id))]",
+    "resourceGroupName": "[toLower(format('rg-{0}-{1}-{2}', parameters('baseName'), parameters('environmentName'), parameters('location')))]",
+    "storageAccountName": "[format('storage{0}', uniqueString(variables('resourceGroupName')))]",
+    "containerregistryName": "[format('cr{0}', uniqueString(variables('resourceGroupName')))]",
+    "containerName": "[format('containers-{0}', uniqueString(variables('resourceGroupName')))]",
+    "containerAppName": "[format('ca-{0}', uniqueString(variables('resourceGroupName')))]",
+    "containerAppEnvName": "[format('cae-{0}', uniqueString(variables('resourceGroupName')))]",
+    "containerAppLogAnalyticsName": "[format('calog-{0}', uniqueString(variables('resourceGroupName')))]",
     "containerImage": "nginx:latest",
     "defaultTags": {
-      "App": "appname",
-      "CostCenter": "[parameters('costCenter')]",
-      "CreatedBy": "[parameters('createdBy')]",
-      "NickName": "[parameters('nickName')]"
+      "App": "[parameters('tag_appname')]",
+      "CostCenter": "[parameters('tag_costCenter')]",
+      "CreatedBy": "[parameters('tag_createdBy')]",
+      "NickName": "[parameters('tag_nickName')]"
     }
   },
   "resources": [
     {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-04-01",
+      "name": "[variables('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "environment": "[parameters('environmentName')]"
+      }
+    },
+    {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "[parameters('resourceGroupName')]",
-      "subscriptionId": "[subscription().subscriptionId]",
-      "location": "[resourceGroup().location]",
+      "name": "storageAccountModule",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
         },
         "mode": "Incremental",
         "parameters": {
-          "defaultTags": {
-            "value": "[variables('defaultTags')]"
-          },
           "location": {
             "value": "[parameters('location')]"
           },
-          "resourceGroupName": {
-            "value": "[parameters('resourceGroupName')]"
+          "storageAccountName": {
+            "value": "[variables('storageAccountName')]"
+          },
+          "defaultTags": {
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
           "metadata": {
             "_generator": {
               "name": "bicep",
               "version": "0.14.46.61228",
-              "templateHash": "5298641394355896069"
+              "templateHash": "5167067353809135306"
             }
           },
           "parameters": {
             "location": {
               "type": "string"
             },
-            "resourceGroupName": {
+            "storageAccountName": {
               "type": "string"
             },
             "defaultTags": {
               "type": "object"
             }
           },
+          "variables": {
+            "storageAccountNamev2": "[toLower(format('sta{0}', uniqueString(resourceGroup().id)))]"
+          },
           "resources": [
             {
-              "type": "Microsoft.Resources/resourceGroups",
-              "apiVersion": "2022-09-01",
-              "name": "[parameters('resourceGroupName')]",
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-02-01",
+              "name": "[variables('storageAccountNamev2')]",
               "location": "[parameters('location')]",
-              "tags": "[parameters('defaultTags')]"
+              "tags": "[parameters('defaultTags')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "StorageV2"
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-02-01",
+              "name": "[parameters('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('defaultTags')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "StorageV2"
             }
           ]
         }
-      }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "[variables('containerregistryName')]",
+      "name": "containersModule",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -189,12 +238,16 @@
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "[variables('containerAppName')]",
+      "name": "[variables('containerName')]",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -217,10 +270,10 @@
             "value": "[variables('containerregistryName')]"
           },
           "containerregistryNameLoginServer": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('containerregistryName')), '2020-10-01').outputs.acrLoginServer.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'containersModule'), '2020-10-01').outputs.acrLoginServer.value]"
           },
           "containerregistryNameCredentials": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('containerregistryName')), '2020-10-01').outputs.output_acr_pass.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'containersModule'), '2020-10-01').outputs.output_acr_pass.value]"
           },
           "containerImage": {
             "value": "[variables('containerImage')]"
@@ -423,30 +476,9 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', variables('containerregistryName'))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'containersModule')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
       ]
     }
-  ],
-  "outputs": {
-    "out_containerregistryName": {
-      "type": "string",
-      "value": "[variables('containerregistryName')]"
-    },
-    "out_containerAppName": {
-      "type": "string",
-      "value": "[variables('containerAppName')]"
-    },
-    "out_containerAppEnvName": {
-      "type": "string",
-      "value": "[variables('containerAppEnvName')]"
-    },
-    "out_containerName": {
-      "type": "string",
-      "value": "[variables('containerName')]"
-    },
-    "out_containerAppFQDN": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('containerAppName')), '2020-10-01').outputs.containerAppFQDN.value]"
-    }
-  }
+  ]
 }
