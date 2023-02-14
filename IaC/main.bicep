@@ -26,7 +26,7 @@ param guidValue string = newGuid()
 var resourceGroupName = toLower('rg-${baseName}-${environmentName}-${location}')
 
 // Resource names may contain alpha numeric characters only and must be between 5 and 50 characters.
-var storageAccountName = 'storage${uniqueString(resourceGroupName)}'
+var storageAccountName = 'sta${uniqueString(resourceGroupName)}'
 var containerregistryName = 'cr${uniqueString(resourceGroupName)}'
 var containerName = 'containers-${uniqueString(resourceGroupName)}'
 var containerAppName = 'ca-${uniqueString(resourceGroupName)}'
